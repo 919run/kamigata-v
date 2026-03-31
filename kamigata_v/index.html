@@ -1,0 +1,316 @@
+<!DOCTYPE html><html><head><title>kamigata-v</title><meta http-equiv="content-type" content="text/html; charset=UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui=1"><meta charset="UTF-8"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="description" content=""><link rel="manifest" href="manifest.json"><link rel="icon" type="image/png" href="icon64.png"><link rel="apple-touch-icon" sizes="180x180" href="icon180.png"><link rel="icon" type="image/png" sizes="32x32" href="icon32.png"><link rel="icon" type="image/png" sizes="16x16" href="icon16.png"><style>html,body {
+  margin: 0;
+  padding: 0;
+  background-color: #000;
+  overflow:hidden;
+  font-family: Verdana;
+}
+.noselect {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+#canvaswrapper {
+  text-align: center ;
+}
+</style><style>@font-face { font-family: "BitCell" ; src: url("fonts/BitCell.ttf") format("truetype"); }</style><script>window.fonts = ["BitCell"]</script></head><body class="noselect custom-cursor" oncontextmenu="return false;"><div id="canvaswrapper"></div><script type="text/javascript">var resources = {"images":[{"file":"boss.png","version":7,"size":319,"properties":{"frames":1,"fps":5}},{"file":"icon.png","version":0,"size":0,"properties":{}},{"file":"oponent_fighter.png","version":10,"size":252,"properties":{"frames":1,"fps":5}},{"file":"v_bullet.png","version":6,"size":100,"properties":{"frames":1,"fps":5}},{"file":"v_fighter.png","version":5,"size":229,"properties":{"frames":1,"fps":5}},{"file":"vke.png","version":1,"size":20189,"properties":{}}],"assets":[],"maps":{},"sounds":[],"music":[{"file":"introsolo1.mp3","version":1,"size":76486,"properties":{}},{"file":"introsolo2.mp3","version":1,"size":76486,"properties":{}}]};
+var graphics = "M1";
+
+</script><script type="text/javascript">var orientation = 'any' ;
+var aspect = 'free' ;
+var ms_libs = [] ;
+window.skip_service_worker = true;
+window.exported_project = true;
+window.ms_use_server = false ;
+</script><script src="compiler.js"></script><script src="parser.js"></script><script src="processor.js"></script><script src="program.js"></script><script src="routine.js"></script><script src="runner.js"></script><script src="token.js"></script><script src="tokenizer.js"></script><script src="transpiler.js"></script><script src="microengine.js"></script></body><script type="text/javascript">//
+//
+// The game is started with the code below.
+// Once you have received the "started" signal (see below),
+// you can do the following:
+// 1) Inject functions or objects into the global context of the microStudio engine, example:
+//
+//   window.player.setGlobal("special_callback",function(x) { console.info(x) }) ;
+//   // Your microScript code can now call the "special_callback" function
+//
+// 2) Call microScript global functions from your JavaScript code, example:
+//
+//   window.player.call("call_me_from_javascript",[10,1000]) ;
+//   // arguments to the function call are provided as an array
+//
+// 3) Run a microScript code snippet from your JavaScript code, example:
+//
+//   window.player.exec("player.position_x = 50",function(result) { console.log(result) ; }) ;
+//
+
+window.addEventListener("load",function() {
+  window.player = new Player(function(event) {
+    if (event.name == "started") {
+      // signal that the game is started
+    }
+    else if (event.name == "log") {
+      // console.info(event.data) ;
+    }
+  }) ;
+  document.body.focus() ;
+}) ;
+
+</script><script id="code" type="text/x-microscript">
+
+
+// file: main.ms
+function()
+init = function()
+  
+  gameState = "title" // gamestate: "title", "game", "gameover"
+  
+  //vke
+  
+  vke = object
+  
+    x = 0
+    y = -50
+    speed = 2
+  
+  end
+  
+  //oponent_fighter
+  
+  enemies = []
+  
+  enemy_bullets = []  // oponent_fighter's bullets
+  
+  // Function to create a wave of oponents
+  spawnEnemies = function()
+    enemies = []
+    for i = 0 to 9
+      local e = object
+        x = -80 + (i * 18)
+        y = 50
+        speed = 0.3
+        dir = 1
+        shoot_timer = random.next() * 100 // Randomizing shooting timing
+      end
+      enemies.push(e)
+    end
+  end
+
+  bullets = [] 
+  
+  score = 0
+  
+  stage = 1
+  
+end
+
+update = function()
+  
+  if gameState == "title" then
+    // Mouse action
+    if mouse.press then
+      score = 0
+      spawnEnemies()
+      gameState = "game"
+      audio.playMusic("introsolo2" 0.5 false)
+    end
+    
+  
+  elsif gameState == "game" then
+  
+  if keyboard.UP then
+    
+    vke.y = vke.y + vke.speed
+    
+  end
+  
+   if keyboard.RIGHT then
+    
+    vke.x = vke.x + vke.speed
+    
+   end
+
+ if keyboard.DOWN then
+    
+    vke.y = vke.y - vke.speed
+    
+ end
+
+ if keyboard.LEFT then
+    
+    vke.x = vke.x - vke.speed
+    
+ end
+
+  if keyboard.press.Z  then
+
+   local v_bullet = object
+      x = vke.x
+      y = vke.y + 10
+      speed = 5
+    end
+    bullets.push(v_bullet)
+    audio.beep("square tempo 6000 volume 10 span 100 E6 to E7")
+    
+  end
+  
+   for b in bullets
+    b.y = b.y + b.speed
+  end
+  
+  for i = 0 to bullets.length - 1
+    if bullets[i].y > 110 then bullets.removeAt(i) end
+  end
+  
+  //oponent movement
+  
+  for e in enemies
+    e.x = e.x + (e.speed * e.dir)
+    if e.x > 90 or e.x < -90 then e.dir = e.dir * -1 end
+    
+        // Enemy shooting (only Stage 2)
+    if stage == 2 then
+      e.shoot_timer = e.shoot_timer + 1
+      
+        local eb = object
+          x = e.x 
+          y = e.y - 5
+          speed = 1
+        end
+      
+      if e.shoot_timer > 100 then // Approximately once in 2 seconds (60 frames = 1 second)
+
+        enemy_bullets.push(eb)
+        e.shoot_timer = 0
+        audio.beep("square tempo 6000 volume 10 span 100 B2 to B3")
+      end
+      
+    // Enemy bullets moving down
+    for i = enemy_bullets.length - 1 to 0 step -1
+    eb = enemy_bullets[i]
+    eb.y = eb.y - eb.speed
+    
+    // Check if enemy hit player
+    if abs(eb.x - vke.x) < 8 and abs(eb.y - vke.y) < 8 then
+      gameState = "gameover"
+      audio.beep("square tempo 4000 volume 10 span 100 F6 to F7")
+    end
+    
+    if eb.y < -110 then enemy_bullets.removeAt(i) end
+    
+    end
+    
+  end
+  
+
+  end
+  
+  if enemies.length > 0 then
+
+    // Checking bullets collision (reverse cycle for safe remove)
+    for i = bullets.length - 1 to 0 step -1
+      local b = bullets[i]
+      
+      for j = enemies.length - 1 to 0 step -1
+        local e = enemies[j]
+        
+        // Проверка попадания
+        if abs(b.x - e.x) < 10 and abs(b.y - e.y) < 10 then
+          enemies.removeAt(j)
+          bullets.removeAt(i)
+          score = score + 10
+          audio.beep("square tempo 6000 volume 10 span 100 A1 to A2")
+          break // If bullet removed quitting inner cycle
+        end
+      end
+    end
+    
+    if stage == 1 and enemies.length == 0 then
+      stage = 2
+      spawnEnemies(10) // Creating new emies for stage 2
+      audio.beep("square tempo 600 volume 10 span 100 A6 to A7") // Sound of new stage
+    end
+  
+
+  end
+  
+    if stage == 2 and enemies.length == 0 then
+     
+      if mouse.press then
+        gameState = "title"
+        stage = 1
+        while enemy_bullets.length>0
+          enemy_bullets.removeAt(0)
+        end
+      end
+    
+    end
+  
+  end
+  
+  if gameState == "gameover" then
+  if mouse.press then
+    stage = 1
+    score = 0
+    enemy_bullets = []
+    bullets = []
+    spawnEnemies(10)
+    gameState = "title"
+  end
+end
+  
+
+  
+end
+
+draw = function()
+  screen.clear()
+    if gameState == "title" then
+    // Title screen
+    screen.drawText("YOROSHIKU", 0, 40, 25, "yellow")
+    screen.drawSprite("vke", 0, 0, 40, 40) // Vke's big sprite
+    
+    // Blinking message
+    if system.time() % 1000 < 500 then
+      screen.drawText("CLICK TO START", 0, -50, 15, "white")
+    end
+    
+    screen.drawText("move: arrow keys and shoot: Z key", 0, -70, 10, "white")
+    
+  elsif gameState == "game" then
+  
+    screen.drawSprite("vke", 0+vke.x, 0+vke.y, 20, 20)
+    
+    // Drawing the score
+    screen.drawText("SCORE: " + score, -80, 90, 10, "white")
+    
+    // Enemies
+    for e in enemies
+      screen.drawSprite("oponent_fighter", e.x, e.y, 15, 15)
+    end
+    
+    // Bullets
+    for b in bullets
+      screen.drawSprite("v_bullet", b.x, b.y, 6, 6)
+    end
+      // Win message
+    if stage == 2 and enemies.length == 0 then
+      screen.drawText("YOU WIN!", 0, 0, 30, "yellow")
+      screen.drawText("CLICK TO RESTART", 0, -30, 15, "white")
+    end
+    
+    for eb in enemy_bullets
+      screen.fillRect(eb.x, eb.y, 2, 8, "red")
+    end
+  
+    elsif gameState == "gameover" then
+      //screen.fillRect(0, 0, 400, 400, "rgba(0,0,0,0.7)")
+      screen.drawText("GAME OVER", 0, 10, 30, "red")
+      screen.drawText("CLICK TO RESTART", 0, -30, 15, "white")
+    end
+end
+end()
+
+
+</script></html>
